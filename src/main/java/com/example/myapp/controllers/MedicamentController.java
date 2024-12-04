@@ -1,5 +1,8 @@
 package com.example.myapp.controllers;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -22,7 +25,6 @@ import com.example.myapp.repository.AccountRepository;
 import com.example.myapp.repository.MedicamentRepository;
 
 import lombok.NoArgsConstructor;
-
 
 @RestController
 @RequestMapping("/medicaments")
@@ -50,10 +52,22 @@ public class MedicamentController {
         return medicamentRepository.findById(id);
     }
 
-    
     @PostMapping
-    Medicament postMedicament(@RequestBody Medicament medicament) {
-        return medicamentRepository.save(medicament);
+    public Iterable<Medicament> postMedicaments(@RequestBody Iterable<Medicament> medicaments) {
+        System.out.println(medicaments);
+        Iterator<Medicament> it = medicaments.iterator();
+        List<Medicament> sended = new ArrayList<>();
+        while(it.hasNext()) {
+            Medicament m = it.next();
+            try {
+                medicamentRepository.save(m);
+                sended.add(m);
+            }
+            catch (Exception e) {
+                System.out.println("увы");
+            }
+        }
+        return sended;
     }
 
     @PutMapping("/id={id}")

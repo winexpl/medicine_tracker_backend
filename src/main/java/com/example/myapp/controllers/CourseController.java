@@ -7,13 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.example.myapp.model.Course;
 import com.example.myapp.repository.AccountRepository;
@@ -23,6 +25,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 
+@CrossOrigin(origins = {"${app.security.cors.origin}"})
 @RestController
 @RequestMapping("/courses")
 @AllArgsConstructor
@@ -46,26 +49,40 @@ public class CourseController {
     }
 
     @PostMapping
-    public Course postCourse(@RequestBody Course course) {
+    public Iterable<Course> postCourses(@RequestBody Iterable<Course> courses) {
+        System.out.println(courses);
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
         UUID userId = accountRepository.findByLogin(userLogin).get().getId();
-        course.setAccountId(userId);
-        if(courseRepository.findByMedicamentIdAndAccountId(course.getMedicamentId(), course.getAccountId()).isEmpty()) {
-            courseRepository.save(course);
-        } else { 
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Нарушение ограничения уникальности");
-        }
-        return course;
+        courses.forEach(c -> c.setAccountId(userId));
+        // Iterator<Course> it = courses.iterator();
+        // List<Course> sended = new ArrayList<>();
+        // while(it.hasNext()) {
+        //     Course c = it.next();
+        //     try {
+        //         courseRepository.save(c);
+        //         sended.add(c);
+        //     }
+        //     catch (Exception e) {
+        //         System.out.println("увы");
+        //     }
+        // }
+        // return sended;
+        return courseRepository.saveAll(courses);
     }
-    
+
     @PutMapping
     public ResponseEntity<Course> putCourse(@RequestBody Course course) {
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
         UUID userId = accountRepository.findByLogin(userLogin).get().getId();
         course.setAccountId(userId);
-        return (course.getId() != null && courseRepository.existsById(course.getId()) ?
-                        new ResponseEntity<>(courseRepository.save(course), HttpStatus.OK) :
-                        new ResponseEntity<>(courseRepository.save(course), HttpStatus.CREATED));
+        return new ResponseEntity<>(course, HttpStatus.OK);
+        // return (course.getId() != null && courseRepository.existsById(course.getId()) ?
+        //                 new ResponseEntity<>(courseRepository.save(course), HttpStatus.OK) :
+        //                 new ResponseEntity<>(courseRepository.save(course), HttpStatus.CREATED));
     }
 
+    @DeleteMapping("/id={id}")
+    public void deleteById(@PathVariable UUID id) {
+        courseRepository.deleteById(id);
+    }
 }
