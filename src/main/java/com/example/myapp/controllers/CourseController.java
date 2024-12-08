@@ -1,6 +1,5 @@
 package com.example.myapp.controllers;
 
-import java.util.Iterator;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +42,7 @@ public class CourseController {
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
         UUID userId = accountRepository.findByLogin(userLogin).get().getId();
         Iterable<Course> courses = courseRepository.findByAccountId(userId);
-        Iterator<Course> course = courses.iterator();
-        System.out.println(course.next().toString());
+        System.err.println(courses);
         return courses;
     }
 
@@ -54,19 +52,6 @@ public class CourseController {
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
         UUID userId = accountRepository.findByLogin(userLogin).get().getId();
         courses.forEach(c -> c.setAccountId(userId));
-        // Iterator<Course> it = courses.iterator();
-        // List<Course> sended = new ArrayList<>();
-        // while(it.hasNext()) {
-        //     Course c = it.next();
-        //     try {
-        //         courseRepository.save(c);
-        //         sended.add(c);
-        //     }
-        //     catch (Exception e) {
-        //         System.out.println("увы");
-        //     }
-        // }
-        // return sended;
         return courseRepository.saveAll(courses);
     }
 
@@ -75,10 +60,10 @@ public class CourseController {
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
         UUID userId = accountRepository.findByLogin(userLogin).get().getId();
         course.setAccountId(userId);
-        return new ResponseEntity<>(course, HttpStatus.OK);
-        // return (course.getId() != null && courseRepository.existsById(course.getId()) ?
-        //                 new ResponseEntity<>(courseRepository.save(course), HttpStatus.OK) :
-        //                 new ResponseEntity<>(courseRepository.save(course), HttpStatus.CREATED));
+        System.out.println(course);
+        return (course.getId() != null && courseRepository.existsById(course.getId()) ?
+                        new ResponseEntity<>(courseRepository.save(course), HttpStatus.OK) :
+                        new ResponseEntity<>(courseRepository.save(course), HttpStatus.CREATED));
     }
 
     @DeleteMapping("/id={id}")

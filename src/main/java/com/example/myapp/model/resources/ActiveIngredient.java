@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ActiveIngredient {
     private String title;
-    private int amount;
+    private double amount;
 }
